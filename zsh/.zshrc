@@ -37,6 +37,10 @@ mkcd() {
 alias ls="lsd"
 alias la="lsd -la"
 alias vim="nvim"
+alias ta="tmux attach -t"
+alias tn="tmux new -s" #Crear nueva sesión
+alias tls="tmux ls"
+alias tconf='tmux source-file ~/.tmux.conf || echo "No tmux session activa"'
 
 # Comandos personalizados
 alias ll="lsd -la --group-directories-first"
