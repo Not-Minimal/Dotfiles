@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Respaldadno la configuración actual de Neovim
+mv ~/.config/nvim ~/.config/nvim_backup_$(date +%s)
+
 echo "Creando symlink para Neovim (LazyVim)..."
 
 # Borra configuración actual si existe
