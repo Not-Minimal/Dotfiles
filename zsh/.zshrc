@@ -41,6 +41,7 @@ alias to="tmux attach -t"
 alias tc="tmux new -s" #Crear nueva sesión
 alias tls="tmux ls"
 alias tconf='tmux source-file ~/.tmux.conf || echo "No tmux session activa"'
+alias studio="npx prisma studio"
 
 # Comandos personalizados
 alias ll="lsd -la --group-directories-first"
