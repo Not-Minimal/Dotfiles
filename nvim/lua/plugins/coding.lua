@@ -1,5 +1,6 @@
 return {
 	-- Create annotations with one keybind, and jump your cursor in the inserted annotation
+	{ "wakatime/vim-wakatime", lazy = false },
 	{
 		"danymat/neogen",
 		keys = {
