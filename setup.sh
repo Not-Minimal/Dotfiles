@@ -1,71 +1,81 @@
-$()$(
-  bash
-  #!/usr/bin/env bash
+#!/usr/bin/env bash
 
-  set -e
+set -e
 
-  # Detect OS
-  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    echo "Detected Linux"
-    PKG_INSTALL="sudo apt update && sudo apt install -y git neovim curl unzip ripgrep fd-find python3 python3-pip golang-go tmux zsh fonts-powerline wget"
-    NODE_INSTALL="curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs"
-    # Install MesloLGS NF Nerd Font
-    echo "Instalando fuente MesloLGS NF..."
-    mkdir -p ~/.local/share/fonts
-    cd ~/.local/share/fonts
-    wget -O "MesloLGS NF Regular.ttf" "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Meslo/L/Regular/MesloLGS%20NF%20Regular.ttf"
-    wget -O "MesloLGS NF Bold.ttf" "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Meslo/L/Bold/MesloLGS%20NF%20Bold.ttf"
-    wget -O "MesloLGS NF Italic.ttf" "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Meslo/L/Italic/MesloLGS%20NF%20Italic.ttf"
-    wget -O "MesloLGS NF Bold Italic.ttf" "https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Meslo/L/Bold-Italic/MesloLGS%20NF%20Bold%20Italic.ttf"
-    fc-cache -fv
-    cd ~
-    FONT_MSG="Abre la configuración de tu terminal y selecciona la fuente 'MesloLGS NF' para una mejor experiencia visual."
-  elif [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "Detected macOS"
-    PKG_INSTALL="brew update && brew install git neovim curl unzip ripgrep fd python3 go tmux zsh wget && brew tap homebrew/cask-fonts && brew install --cask font-meslo-lg-nerd-font"
-    NODE_INSTALL="brew install node"
-    FONT_MSG="Abre la configuración de tu terminal y selecciona la fuente 'MesloLGS NF' para una mejor experiencia visual."
-  else
-    echo "Unsupported OS"
-    exit 1
-  fi
+# Detectar sistema operativo de forma confiable
+if [ -z "$OSTYPE" ]; then
+  OSTYPE=$(uname | tr '[:upper:]' '[:lower:]')-gnu
+fi
 
-  # Install packages
-  eval $PKG_INSTALL
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  echo "🟢 Sistema operativo detectado: Linux"
 
-  # Install Node.js
-  eval $NODE_INSTALL
+  echo "📦 Instalando paquetes básicos..."
+  sudo apt update
+  sudo apt install -y git neovim curl unzip ripgrep fd-find python3 python3-pip golang-go tmux zsh fonts-powerline wget
 
-  # Change default shell to zsh
-  if [ "$SHELL" != "$(which zsh)" ]; then
-    chsh -s "$(which zsh)"
-    echo "Shell cambiada a zsh. Reinicia tu terminal para aplicar los cambios."
-  fi
+  echo "📦 Instalando Node.js 20..."
+  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  sudo apt install -y nodejs
 
-  # Install Oh My Zsh
-  if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    echo "Instalando Oh My Zsh..."
-    RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-  fi
+  echo "🔤 Instalando fuente MesloLGS NF..."
+  mkdir -p ~/.local/share/fonts
+  cd ~/.local/share/fonts
+  wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/Meslo.zip
+  unzip Meslo.zip -d Meslo
+  cp Meslo/*.ttf .
+  rm -rf Meslo Meslo.zip
+  fc-cache -fv
+  cd ~
+  FONT_MSG="ℹ️ Abre la configuración de tu terminal y selecciona la fuente 'MesloLGS NF' para una mejor experiencia visual."
 
-  # Clone dotfiles
-  if [ ! -d "$HOME/Dotfiles" ]; then
-    git clone https://github.com/Not-Minimal/Dotfiles.git "$HOME/Dotfiles"
-  fi
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+  echo "🟢 Sistema operativo detectado: macOS"
+  brew update
+  brew install git neovim curl unzip ripgrep fd python3 go tmux zsh wget
+  brew tap homebrew/cask-fonts
+  brew install --cask font-meslo-lg-nerd-font
+  FONT_MSG="ℹ️ Abre la configuración de tu terminal y selecciona la fuente 'MesloLGS NF' para una mejor experiencia visual."
 
-  # Backup existing configs
-  [ -d "$HOME/.config/nvim" ] && mv "$HOME/.config/nvim" "$HOME/.config/nvim.backup.$(date +%s)"
-  [ -f "$HOME/.tmux.conf" ] && mv "$HOME/.tmux.conf" "$HOME/.tmux.conf.backup.$(date +%s)"
-  [ -f "$HOME/.zshrc" ] && mv "$HOME/.zshrc" "$HOME/.zshrc.backup.$(date +%s)"
+else
+  echo "❌ Sistema operativo no soportado"
+  exit 1
+fi
 
-  # Copy configs from dotfiles
-  mkdir -p "$HOME/.config"
-  [ -d "$HOME/Dotfiles/nvim" ] && cp -r "$HOME/Dotfiles/nvim" "$HOME/.config/nvim"
-  [ -f "$HOME/Dotfiles/tmux.conf" ] && cp "$HOME/Dotfiles/tmux.conf" "$HOME/.tmux.conf"
-  [ -f "$HOME/Dotfiles/zshrc" ] && cp "$HOME/Dotfiles/zshrc" "$HOME/.zshrc"
+# Cambiar shell por defecto a zsh
+if [ "$SHELL" != "$(which zsh)" ]; then
+  echo "💡 Cambiando el shell por defecto a Zsh..."
+  chsh -s "$(which zsh)"
+  echo "✅ Shell cambiado a Zsh. Reinicia tu terminal para aplicar los cambios."
+fi
 
-  echo "Instalación finalizada."
-  echo "$FONT_MSG"
-  echo "Abre Neovim con 'nvim' y tmux con 'tmux'."
-  echo "¡Disfruta tu entorno personalizado!"
-)$()
+# Instalar Oh My Zsh si no existe
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+  echo "🚀 Instalando Oh My Zsh..."
+  RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
+
+# Clonar Dotfiles si no existe
+if [ ! -d "$HOME/Dotfiles" ]; then
+  echo "📂 Clonando repositorio de Dotfiles..."
+  git clone https://github.com/Not-Minimal/Dotfiles.git "$HOME/Dotfiles"
+fi
+
+# Respaldar configuraciones existentes
+echo "🧠 Haciendo backup de configuraciones previas..."
+[ -d "$HOME/.config/nvim" ] && mv "$HOME/.config/nvim" "$HOME/.config/nvim.backup.$(date +%s)"
+[ -f "$HOME/.tmux.conf" ] && mv "$HOME/.tmux.conf" "$HOME/.tmux.conf.backup.$(date +%s)"
+[ -f "$HOME/.zshrc" ] && mv "$HOME/.zshrc" "$HOME/.zshrc.backup.$(date +%s)"
+
+# Copiar nuevos dotfiles
+echo "📄 Aplicando configuraciones desde Dotfiles..."
+mkdir -p "$HOME/.config"
+[ -d "$HOME/Dotfiles/nvim" ] && cp -r "$HOME/Dotfiles/nvim" "$HOME/.config/nvim"
+[ -f "$HOME/Dotfiles/tmux.conf" ] && cp "$HOME/Dotfiles/tmux.conf" "$HOME/.tmux.conf"
+[ -f "$HOME/Dotfiles/zshrc" ] && cp "$HOME/Dotfiles/zshrc" "$HOME/.zshrc"
+
+echo ""
+echo "✅ Instalación finalizada correctamente."
+echo "$FONT_MSG"
+echo "📝 Abre Neovim con 'nvim' y tmux con 'tmux'."
+echo "🎉 ¡Disfruta tu entorno personalizado!"
