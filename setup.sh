@@ -89,13 +89,24 @@ fi
 if [[ "$OS" == "ubuntu" || "$OS" == "debian" ]]; then
   msg "📦 Actualizando sistema y paquetes..."
   sudo apt update && sudo apt upgrade -y
-  sudo apt install -y git curl wget unzip ripgrep fd-find python3 python3-pip gcc g++ make cmake pkg-config libtool libtool-bin autoconf automake tmux htop iftop build-essential fonts-powerline fonts-firacode fonts-jetbrains-mono fonts-hack-ttf ca-certificates gnupg lsb-release software-properties-common yarn pnpm docker.io lazygit fzf
+  sudo apt install -y git curl wget unzip ripgrep fd-find python3 python3-pip gcc g++ make cmake pkg-config libtool libtool-bin autoconf automake tmux htop iftop build-essential fonts-powerline fonts-firacode fonts-jetbrains-mono fonts-hack-ttf ca-certificates gnupg lsb-release software-properties-common fzf docker.io
 
   # Node.js 20
-  msg "📦 Instalando Node.js 20, yarn, pnpm..."
+  msg "📦 Instalando Node.js 20..."
   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
   sudo apt install -y nodejs
+
+  # Instalar yarn y pnpm globalmente con npm
+  msg "📦 Instalando yarn y pnpm globalmente con npm..."
   sudo npm install -g yarn pnpm
+
+  # Instalar lazygit desde binario oficial
+  msg "📦 Instalando lazygit desde binario oficial..."
+  LAZYGIT_VERSION=$(curl -s https://api.github.com/repos/jesseduffield/lazygit/releases/latest | grep tag_name | cut -d '"' -f4)
+  curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION#v}_Linux_x86_64.tar.gz"
+  tar xf lazygit.tar.gz lazygit
+  sudo install lazygit /usr/local/bin
+  rm lazygit lazygit.tar.gz
 
   # Instalar la última versión de Neovim desde binario oficial
   msg "🟢 Instalando la última versión de Neovim..."
