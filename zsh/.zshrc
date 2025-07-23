@@ -111,3 +111,4 @@ export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
   --separator="" --scrollbar=""'
 
 export PATH="$HOME/depot_tools:$PATH"
+export PATH="/Library/TeX/texbin:$PATH"
