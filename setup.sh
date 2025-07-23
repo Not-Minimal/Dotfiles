@@ -13,6 +13,41 @@ set -e
 msg() { echo -e "\033[1;32m$1\033[0m"; }
 err() { echo -e "\033[1;31m$1\033[0m" >&2; }
 
+# --- FUNCIONES DE VERIFICACIÓN DE VERSIONES ---
+ver_ge() { # ver_ge <version1> <version2> ; return 0 si version1 >= version2
+  [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]
+}
+
+check_neovim_version() {
+  if command -v nvim &>/dev/null; then
+    NVIM_VER=$(nvim --version | head -n1 | awk '{print $2}')
+    if ver_ge "$NVIM_VER" "0.9.0"; then
+      msg "✅ Neovim $NVIM_VER detectado."
+    else
+      err "❌ Neovim $NVIM_VER detectado, pero se requiere >= 0.9.0."
+      return 1
+    fi
+  else
+    err "❌ Neovim no está instalado."
+    return 1
+  fi
+}
+
+check_git_version() {
+  if command -v git &>/dev/null; then
+    GIT_VER=$(git --version | awk '{print $3}')
+    if ver_ge "$GIT_VER" "2.19.0"; then
+      msg "✅ Git $GIT_VER detectado."
+    else
+      err "❌ Git $GIT_VER detectado, pero se requiere >= 2.19.0."
+      return 1
+    fi
+  else
+    err "❌ Git no está instalado."
+    return 1
+  fi
+}
+
 # --- DETECCIÓN DE SISTEMA ---
 OS=""
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -54,11 +89,7 @@ fi
 if [[ "$OS" == "ubuntu" || "$OS" == "debian" ]]; then
   msg "📦 Actualizando sistema y paquetes..."
   sudo apt update && sudo apt upgrade -y
-  sudo apt install -y git neovim vim curl wget unzip ripgrep fd-find python3 python3-pip golang-go tmux htop iftop build-essential fonts-powerline fonts-firacode fonts-jetbrains-mono fonts-hack-ttf ca-certificates gnupg lsb-release software-properties-common
-
-  # --- HERRAMIENTAS DE COMPILACIÓN PARA NVIM-TREESITTER ---
-  msg "🛠️ Instalando herramientas de compilación necesarias para Treesitter..."
-  sudo apt install -y build-essential gcc g++ make cmake pkg-config libtool libtool-bin autoconf automake
+  sudo apt install -y git curl wget unzip ripgrep fd-find python3 python3-pip gcc g++ make cmake pkg-config libtool libtool-bin autoconf automake tmux htop iftop build-essential fonts-powerline fonts-firacode fonts-jetbrains-mono fonts-hack-ttf ca-certificates gnupg lsb-release software-properties-common yarn pnpm docker.io lazygit fzf
 
   # Node.js 20
   msg "📦 Instalando Node.js 20, yarn, pnpm..."
@@ -66,25 +97,23 @@ if [[ "$OS" == "ubuntu" || "$OS" == "debian" ]]; then
   sudo apt install -y nodejs
   sudo npm install -g yarn pnpm
 
-  # Docker
-  msg "🐳 Instalando Docker y Docker Compose..."
-  sudo apt remove -y docker docker-engine docker.io containerd runc || true
-  sudo apt install -y ca-certificates curl gnupg
-  sudo install -m 0755 -d /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/$(. /etc/os-release && echo "$ID")/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-  echo "\
-deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$(. /etc/os-release && echo "$ID") $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
-  sudo apt update
-  sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-  sudo usermod -aG docker "$USER"
+  # Instalar la última versión de Neovim desde binario oficial
+  msg "🟢 Instalando la última versión de Neovim..."
+  NVIM_URL="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
+  curl -LO "$NVIM_URL"
+  sudo rm -rf /opt/nvim
+  sudo mkdir -p /opt/nvim
+  sudo tar -C /opt/nvim --strip-components=1 -xzf nvim-linux-x86_64.tar.gz
+  sudo ln -sf /opt/nvim/bin/nvim /usr/local/bin/nvim
+  rm nvim-linux-x86_64.tar.gz
 
   # fd alias
   if ! command -v fd &>/dev/null && command -v fdfind &>/dev/null; then
     sudo ln -sf $(which fdfind) /usr/local/bin/fd
   fi
 
-  # Nerd Fonts (MesloLGS NF)
-  msg "🔤 Instalando fuente MesloLGS NF..."
+  # Nerd Fonts (MesloLGS NF v3+)
+  msg "🔤 Instalando fuente MesloLGS NF v3+..."
   mkdir -p ~/.local/share/fonts
   cd ~/.local/share/fonts
   wget -q https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/Meslo.zip
@@ -104,7 +133,7 @@ elif [[ "$OS" == "macos" ]]; then
   fi
   msg "📦 Actualizando Homebrew y paquetes..."
   brew update
-  brew install git neovim vim curl wget unzip ripgrep fd python go tmux zsh htop iftop node yarn pnpm docker docker-compose
+  brew install git neovim curl wget unzip ripgrep fd python go tmux zsh htop iftop node yarn pnpm docker docker-compose lazygit fzf gcc cmake pkg-config libtool autoconf automake
   brew tap homebrew/cask-fonts
   brew install --cask font-meslo-lg-nerd-font font-fira-code font-jetbrains-mono font-hack-nerd-font
   FONT_MSG="ℹ️ Abre la configuración de tu terminal y selecciona la fuente 'MesloLGS NF' para una mejor experiencia visual."
@@ -147,6 +176,10 @@ else
   err "❌ Sistema operativo no soportado para instalación automática."
   exit 1
 fi
+
+# --- VERIFICAR VERSIONES DE NEOVIM Y GIT ---
+check_neovim_version || err "⚠️  Por favor, instala manualmente Neovim >= 0.9.0."
+check_git_version || err "⚠️  Por favor, instala manualmente Git >= 2.19.0."
 
 # --- CLONAR DOTFILES ---
 if [ ! -d "$HOME/Dotfiles" ]; then
