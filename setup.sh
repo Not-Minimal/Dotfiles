@@ -25,7 +25,8 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 elif [[ "$OSTYPE" == "darwin"* ]]; then
   OS="macos"
 else
-  err "❌ Sistema operativo no soportado ($OSTYPE)"; exit 1
+  err "❌ Sistema operativo no soportado ($OSTYPE)"
+  exit 1
 fi
 
 msg "🟢 Sistema detectado: $OS"
@@ -35,7 +36,8 @@ if ! command -v sudo &>/dev/null; then
   if [[ "$OS" == "debian" || "$OS" == "ubuntu" ]]; then
     su -c 'apt update && apt install -y sudo'
   else
-    err "❌ sudo no está instalado y no puedo instalarlo automáticamente en este sistema."; exit 1
+    err "❌ sudo no está instalado y no puedo instalarlo automáticamente en este sistema."
+    exit 1
   fi
 fi
 
@@ -54,6 +56,10 @@ if [[ "$OS" == "ubuntu" || "$OS" == "debian" ]]; then
   sudo apt update && sudo apt upgrade -y
   sudo apt install -y git neovim vim curl wget unzip ripgrep fd-find python3 python3-pip golang-go tmux htop iftop build-essential fonts-powerline fonts-firacode fonts-jetbrains-mono fonts-hack-ttf ca-certificates gnupg lsb-release software-properties-common
 
+  # --- HERRAMIENTAS DE COMPILACIÓN PARA NVIM-TREESITTER ---
+  msg "🛠️ Instalando herramientas de compilación necesarias para Treesitter..."
+  sudo apt install -y build-essential gcc g++ make cmake pkg-config libtool libtool-bin autoconf automake
+
   # Node.js 20
   msg "📦 Instalando Node.js 20, yarn, pnpm..."
   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
@@ -67,7 +73,7 @@ if [[ "$OS" == "ubuntu" || "$OS" == "debian" ]]; then
   sudo install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/$(. /etc/os-release && echo "$ID")/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
   echo "\
-deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$(. /etc/os-release && echo "$ID") $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$(. /etc/os-release && echo "$ID") $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
   sudo apt update
   sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   sudo usermod -aG docker "$USER"
@@ -138,7 +144,8 @@ elif [[ "$OS" == "macos" ]]; then
   fi
 
 else
-  err "❌ Sistema operativo no soportado para instalación automática."; exit 1
+  err "❌ Sistema operativo no soportado para instalación automática."
+  exit 1
 fi
 
 # --- CLONAR DOTFILES ---
