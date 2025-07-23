@@ -52,7 +52,7 @@ fi
 if [[ "$OS" == "ubuntu" || "$OS" == "debian" ]]; then
   msg "📦 Actualizando sistema y paquetes..."
   sudo apt update && sudo apt upgrade -y
-  sudo apt install -y git neovim vim curl wget unzip ripgrep fd-find python3 python3-pip golang-go tmux zsh htop iftop build-essential fonts-powerline fonts-firacode fonts-jetbrains-mono fonts-hack-ttf ca-certificates gnupg lsb-release software-properties-common
+  sudo apt install -y git neovim vim curl wget unzip ripgrep fd-find python3 python3-pip golang-go tmux htop iftop build-essential fonts-powerline fonts-firacode fonts-jetbrains-mono fonts-hack-ttf ca-certificates gnupg lsb-release software-properties-common
 
   # Node.js 20
   msg "📦 Instalando Node.js 20, yarn, pnpm..."
@@ -102,37 +102,43 @@ elif [[ "$OS" == "macos" ]]; then
   brew tap homebrew/cask-fonts
   brew install --cask font-meslo-lg-nerd-font font-fira-code font-jetbrains-mono font-hack-nerd-font
   FONT_MSG="ℹ️ Abre la configuración de tu terminal y selecciona la fuente 'MesloLGS NF' para una mejor experiencia visual."
+
+  # --- CAMBIAR SHELL POR DEFECTO A ZSH ---
+  if [ "$SHELL" != "$(which zsh)" ]; then
+    msg "💡 Intentando cambiar el shell por defecto a Zsh..."
+    CHSH_OK=0
+    if command -v sudo &>/dev/null; then
+      if sudo chsh -s "$(which zsh)" "$USER"; then
+        msg "✅ Shell cambiado a Zsh para el usuario $USER. Reinicia tu terminal o reconéctate para aplicar los cambios."
+        CHSH_OK=1
+      fi
+    fi
+    if [ $CHSH_OK -eq 0 ]; then
+      if chsh -s "$(which zsh)"; then
+        msg "✅ Shell cambiado a Zsh. Reinicia tu terminal o reconéctate para aplicar los cambios."
+        CHSH_OK=1
+      fi
+    fi
+    if [ $CHSH_OK -eq 0 ]; then
+      err "⚠️  No se pudo cambiar el shell por defecto automáticamente (puede requerir contraseña o permisos de root)."
+      msg "ℹ️  Si usas SSH o no tienes contraseña, puedes añadir esto al final de tu ~/.bashrc para usar Zsh automáticamente:"
+      echo 'if command -v zsh >/dev/null 2>&1; then exec zsh; fi'
+    fi
+  fi
+
+  # --- INSTALAR OH MY ZSH ---
+  if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    msg "🚀 Instalando Oh My Zsh..."
+    RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  fi
+
+  # --- COPIAR ZSHRC ---
+  if [ -f "$HOME/Dotfiles/zshrc" ]; then
+    cp "$HOME/Dotfiles/zshrc" "$HOME/.zshrc"
+  fi
+
 else
   err "❌ Sistema operativo no soportado para instalación automática."; exit 1
-fi
-
-# --- CAMBIAR SHELL POR DEFECTO A ZSH ---
-if [ "$SHELL" != "$(which zsh)" ]; then
-  msg "💡 Intentando cambiar el shell por defecto a Zsh..."
-  CHSH_OK=0
-  if command -v sudo &>/dev/null; then
-    if sudo chsh -s "$(which zsh)" "$USER"; then
-      msg "✅ Shell cambiado a Zsh para el usuario $USER. Reinicia tu terminal o reconéctate para aplicar los cambios."
-      CHSH_OK=1
-    fi
-  fi
-  if [ $CHSH_OK -eq 0 ]; then
-    if chsh -s "$(which zsh)"; then
-      msg "✅ Shell cambiado a Zsh. Reinicia tu terminal o reconéctate para aplicar los cambios."
-      CHSH_OK=1
-    fi
-  fi
-  if [ $CHSH_OK -eq 0 ]; then
-    err "⚠️  No se pudo cambiar el shell por defecto automáticamente (puede requerir contraseña o permisos de root)."
-    msg "ℹ️  Si usas SSH o no tienes contraseña, puedes añadir esto al final de tu ~/.bashrc para usar Zsh automáticamente:"
-    echo 'if command -v zsh >/dev/null 2>&1; then exec zsh; fi'
-  fi
-fi
-
-# --- INSTALAR OH MY ZSH ---
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-  msg "🚀 Instalando Oh My Zsh..."
-  RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 fi
 
 # --- CLONAR DOTFILES ---
@@ -152,7 +158,7 @@ msg "📄 Aplicando configuraciones desde Dotfiles..."
 mkdir -p "$HOME/.config"
 [ -d "$HOME/Dotfiles/nvim" ] && cp -r "$HOME/Dotfiles/nvim" "$HOME/.config/nvim"
 [ -f "$HOME/Dotfiles/tmux.conf" ] && cp "$HOME/Dotfiles/tmux.conf" "$HOME/.tmux.conf"
-[ -f "$HOME/Dotfiles/zshrc" ] && cp "$HOME/Dotfiles/zshrc" "$HOME/.zshrc"
+# [ -f "$HOME/Dotfiles/zshrc" ] && cp "$HOME/Dotfiles/zshrc" "$HOME/.zshrc"  # <-- Esto ya se hace solo en macOS
 
 # --- FINAL ---
 echo ""
