@@ -108,9 +108,25 @@ fi
 
 # --- CAMBIAR SHELL POR DEFECTO A ZSH ---
 if [ "$SHELL" != "$(which zsh)" ]; then
-  msg "💡 Cambiando el shell por defecto a Zsh..."
-  chsh -s "$(which zsh)"
-  msg "✅ Shell cambiado a Zsh. Reinicia tu terminal para aplicar los cambios."
+  msg "💡 Intentando cambiar el shell por defecto a Zsh..."
+  CHSH_OK=0
+  if command -v sudo &>/dev/null; then
+    if sudo chsh -s "$(which zsh)" "$USER"; then
+      msg "✅ Shell cambiado a Zsh para el usuario $USER. Reinicia tu terminal o reconéctate para aplicar los cambios."
+      CHSH_OK=1
+    fi
+  fi
+  if [ $CHSH_OK -eq 0 ]; then
+    if chsh -s "$(which zsh)"; then
+      msg "✅ Shell cambiado a Zsh. Reinicia tu terminal o reconéctate para aplicar los cambios."
+      CHSH_OK=1
+    fi
+  fi
+  if [ $CHSH_OK -eq 0 ]; then
+    err "⚠️  No se pudo cambiar el shell por defecto automáticamente (puede requerir contraseña o permisos de root)."
+    msg "ℹ️  Si usas SSH o no tienes contraseña, puedes añadir esto al final de tu ~/.bashrc para usar Zsh automáticamente:"
+    echo 'if command -v zsh >/dev/null 2>&1; then exec zsh; fi'
+  fi
 fi
 
 # --- INSTALAR OH MY ZSH ---
