@@ -112,3 +112,4 @@ export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS'
 
 export PATH="$HOME/depot_tools:$PATH"
 export PATH="/Library/TeX/texbin:$PATH"
+source ~/powerlevel10k/powerlevel10k.zsh-theme
