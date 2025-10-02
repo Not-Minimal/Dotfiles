@@ -1,0 +1,47 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "debugger": {
+    "dock": "bottom"
+  },
+  "agent": {
+    "always_allow_tool_actions": true,
+    "dock": "right",
+    "default_model": {
+      "provider": "zed.dev",
+      "model": "claude-sonnet-4"
+    },
+    "play_sound_when_agent_done": true
+  },
+  "minimap": {
+    "show": "never"
+  },
+  "buffer_font_family": "Google Sans Code",
+  "buffer_font_features": {
+    "calt": 1
+  },
+  "ui_font_family": "Satoshi",
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
+  },
+  "vim_mode": true,
+  "base_keymap": "VSCode",
+  "ui_font_size": 15.0,
+  "buffer_font_size": 13.0,
+  "theme": {
+    "mode": "system",
+    "light": "Nightfox",
+    "dark": "Nightfox - opaque"
+  },
+  "terminal": {
+    "font_family": "MesloLGS NF"
+  }
+}
+
